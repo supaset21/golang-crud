@@ -30,9 +30,25 @@ func CheckBookExists(title string) bool {
 func ReadBook(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	title := vars["title"]
-	page := vars["page"]
 
-	fmt.Fprintf(w, "You've requested the book: %s on page %s\n", title, page)
+	result := booksType{}
+	isBook := false
+
+	for index, b := range bookStore {
+		if b.Title == title {
+			result = bookStore[index]
+			isBook = true
+		}
+	}
+
+	if isBook {
+		response, _ := json.Marshal(result)
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, string(response))
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "Not Found Book.")
+	}
 }
 
 func CreateBook(w http.ResponseWriter, req *http.Request) {
@@ -132,7 +148,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/books", ListBook).Methods("GET")
-	router.HandleFunc("/books/{title}/page/{page}", ReadBook).Methods("GET")
+	router.HandleFunc("/books/{title}", ReadBook).Methods("GET")
 	router.HandleFunc("/books/{title}", CreateBook).Methods("POST")
 	router.HandleFunc("/books/{title}", UpdateBook).Methods("PUT")
 	router.HandleFunc("/books/{title}", DeleteBook).Methods("DELETE")
