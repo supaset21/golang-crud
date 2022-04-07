@@ -59,7 +59,27 @@ func CreateBook(w http.ResponseWriter, req *http.Request) {
 }
 
 func DeleteBook(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "Delete Book")
+	vars := mux.Vars(req)
+	title := vars["title"]
+
+	arr := []booksType{}
+	isDelete := false
+	for index, b := range bookStore {
+		if b.Title != title {
+			arr = append(arr, bookStore[index])
+		} else {
+			isDelete = true
+		}
+	}
+
+	bookStore = arr
+
+	if isDelete {
+		fmt.Fprintf(w, "Delete Book")
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "Not Found Book.")
+	}
 }
 
 func UpdateStock(title string, stock int) bool {
