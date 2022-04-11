@@ -6,9 +6,13 @@ import (
 	"log"
 	"net/http"
 
+	"gorilla/controllers"
+	U "gorilla/utils"
+
 	"github.com/gorilla/mux"
 )
 
+// /opt/golang/src/gorilla
 type booksType struct {
 	Title string `json:"title"`
 	Stock int    `json:"stock"`
@@ -27,29 +31,29 @@ func CheckBookExists(title string) bool {
 	return result
 }
 
-func ReadBook(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	title := vars["title"]
+// func ReadBook(w http.ResponseWriter, r *http.Request) {
+// 	vars := mux.Vars(r)
+// 	title := vars["title"]
 
-	result := booksType{}
-	isBook := false
+// 	result := booksType{}
+// 	isBook := false
 
-	for index, b := range bookStore {
-		if b.Title == title {
-			result = bookStore[index]
-			isBook = true
-		}
-	}
+// 	for index, b := range bookStore {
+// 		if b.Title == title {
+// 			result = bookStore[index]
+// 			isBook = true
+// 		}
+// 	}
 
-	if isBook {
-		response, _ := json.Marshal(result)
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, string(response))
-	} else {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, "Not Found Book.")
-	}
-}
+// 	if isBook {
+// 		response, _ := json.Marshal(result)
+// 		w.WriteHeader(http.StatusOK)
+// 		fmt.Fprint(w, string(response))
+// 	} else {
+// 		w.WriteHeader(http.StatusNotFound)
+// 		fmt.Fprintf(w, "Not Found Book.")
+// 	}
+// }
 
 func CreateBook(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
@@ -148,7 +152,10 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/books", ListBook).Methods("GET")
-	router.HandleFunc("/books/{title}", ReadBook).Methods("GET")
+	// router.HandleFunc("/books/{title}", C.ReadBook).Methods("GET")
+	controllers.ReadBook()
+	controllers.YO()
+	U.RunJa()
 	router.HandleFunc("/books/{title}", CreateBook).Methods("POST")
 	router.HandleFunc("/books/{title}", UpdateBook).Methods("PUT")
 	router.HandleFunc("/books/{title}", DeleteBook).Methods("DELETE")
