@@ -6,13 +6,11 @@ import (
 	"log"
 	"net/http"
 
-	"gorilla/controllers"
-	U "gorilla/utils"
+	C "gorilla/controllers"
 
 	"github.com/gorilla/mux"
 )
 
-// /opt/golang/src/gorilla
 type booksType struct {
 	Title string `json:"title"`
 	Stock int    `json:"stock"`
@@ -21,60 +19,27 @@ type booksType struct {
 var bookStore = []booksType{}
 var book = make(map[string]booksType)
 
-func CheckBookExists(title string) bool {
-	result := false
-	for _, b := range bookStore {
-		if b.Title == title {
-			result = true
-		}
-	}
-	return result
-}
-
-// func ReadBook(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-// 	title := vars["title"]
-
-// 	result := booksType{}
-// 	isBook := false
-
-// 	for index, b := range bookStore {
-// 		if b.Title == title {
-// 			result = bookStore[index]
-// 			isBook = true
-// 		}
-// 	}
-
-// 	if isBook {
-// 		response, _ := json.Marshal(result)
-// 		w.WriteHeader(http.StatusOK)
-// 		fmt.Fprint(w, string(response))
-// 	} else {
-// 		w.WriteHeader(http.StatusNotFound)
-// 		fmt.Fprintf(w, "Not Found Book.")
-// 	}
-// }
-
-func CreateBook(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
+func ReadBook(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	title := vars["title"]
 
-	var input booksType
-	err := json.NewDecoder(req.Body).Decode(&input)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "Decode error! please check your JSON formating.")
-		return
+	result := booksType{}
+	isBook := false
+
+	for index, b := range bookStore {
+		if b.Title == title {
+			result = bookStore[index]
+			isBook = true
+		}
 	}
 
-	isBookExist := CheckBookExists(title)
-	if !isBookExist {
-		bookStore = append(bookStore, booksType{Title: title, Stock: input.Stock})
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "Created Book")
+	if isBook {
+		response, _ := json.Marshal(result)
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, string(response))
 	} else {
-		w.WriteHeader(http.StatusConflict)
-		fmt.Fprintf(w, "Book is Already Exists")
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "Not Found Book.")
 	}
 }
 
@@ -138,11 +103,11 @@ func UpdateBook(w http.ResponseWriter, req *http.Request) {
 
 }
 
-func ListBook(w http.ResponseWriter, req *http.Request) {
-	foo_marshalled, _ := json.Marshal(bookStore)
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, string(foo_marshalled)) // write response to ResponseWriter (w)
-}
+//func ListBook(w http.ResponseWriter, req *http.Request) {
+//	foo_marshalled, _ := json.Marshal(bookStore)
+//	w.WriteHeader(http.StatusOK)
+//	fmt.Fprint(w, string(foo_marshalled)) // write response to ResponseWriter (w)
+//}
 
 func main() {
 	port := 8080
@@ -151,12 +116,9 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/books", ListBook).Methods("GET")
-	// router.HandleFunc("/books/{title}", C.ReadBook).Methods("GET")
-	controllers.ReadBook()
-	controllers.YO()
-	U.RunJa()
-	router.HandleFunc("/books/{title}", CreateBook).Methods("POST")
+	router.HandleFunc("/books", C.ListBookController).Methods("GET")
+	router.HandleFunc("/books/{title}", ReadBook).Methods("GET")
+	router.HandleFunc("/books/{title}", C.CreateBookController).Methods("POST")
 	router.HandleFunc("/books/{title}", UpdateBook).Methods("PUT")
 	router.HandleFunc("/books/{title}", DeleteBook).Methods("DELETE")
 
