@@ -39,7 +39,7 @@ func FindBooks() []models.BooksType {
 	if err != nil {
 		panic(err)
 	}
-	//defer data.Close(ctx)
+	defer data.Close(ctx)
 
 	var books []models.BooksType
 	if err = data.All(ctx, &books); err != nil {
