@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"gorilla/config"
 	"gorilla/models"
@@ -34,16 +35,75 @@ func FindBooks() []models.BooksType {
 	client, ctx, _ := config.MongoDbConnection()
 	collection := client.Database(config.DATABASE_NAME).Collection("books")
 
-	data, err := collection.Find(ctx, bson.D{})
+	cur, err := collection.Find(ctx, bson.D{})
 
 	if err != nil {
 		panic(err)
 	}
-	defer data.Close(ctx)
+	defer cur.Close(ctx)
 
 	var books []models.BooksType
-	if err = data.All(ctx, &books); err != nil {
+	if err = cur.All(ctx, &books); err != nil {
 		panic(err)
 	}
 	return books
+}
+
+func FindByTitleBook(title string) (models.BooksType, bool) {
+	client, ctx, err := config.MongoDbConnection()
+	collection := client.Database(config.DATABASE_NAME).Collection("books")
+
+	var book models.BooksType
+	if err = collection.FindOne(ctx, bson.M{"title": title}).Decode(&book); err != nil {
+		return models.BooksType{}, false
+	}
+	return book, true
+}
+
+func UpdateStock(title string, stock int) bool {
+	isExistsBook := CheckBookExists(title)
+
+	if isExistsBook {
+		client, ctx, _ := config.MongoDbConnection()
+		collection := client.Database(config.DATABASE_NAME).Collection("books")
+
+		filter := bson.D{{"title", title}}
+		update := bson.D{{"$set",
+			bson.D{
+				{"stock", stock},
+			},
+		}}
+
+		_, err := collection.UpdateOne(ctx, filter, update)
+
+		if err != nil {
+			//fmt.Println(err)
+			isExistsBook = false
+		}
+
+	}
+
+	return isExistsBook
+}
+
+func DeleteBook(title string) bool {
+	result := false
+	isExistsBook := CheckBookExists(title)
+
+	if isExistsBook {
+		client, ctx, _ := config.MongoDbConnection()
+		collection := client.Database(config.DATABASE_NAME).Collection("books")
+		filter := bson.D{{"title", title}}
+
+		deleteResult, _ := collection.DeleteOne(ctx, filter)
+
+		fmt.Println(deleteResult.DeletedCount)
+
+		if deleteResult.DeletedCount != 0 {
+			result = true
+		}
+
+	}
+
+	return result
 }

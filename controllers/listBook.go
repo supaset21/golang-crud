@@ -8,7 +8,6 @@ import (
 
 func ListBookController(w http.ResponseWriter, req *http.Request) {
 	books := utils.FindBooks()
-	jsonResponse, _ := json.Marshal(books)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
@@ -17,6 +16,7 @@ func ListBookController(w http.ResponseWriter, req *http.Request) {
 		jsonResponse, _ := json.Marshal(result)
 		w.Write(jsonResponse)
 	} else {
+		jsonResponse, _ := json.Marshal(books)
 		w.Write(jsonResponse)
 	}
 }

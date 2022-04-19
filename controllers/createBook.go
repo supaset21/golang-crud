@@ -25,7 +25,7 @@ func CreateBookController(w http.ResponseWriter, req *http.Request) {
 
 	isBookExist := utils.CheckBookExists(title)
 	if !isBookExist {
-		utils.CreateBook(title, input.Stock)
+		go utils.CreateBook(title, input.Stock)
 		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, "Created Book")
 	} else {
